@@ -3,9 +3,10 @@
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { ResumeData, Experience, Education, Project, SkillGroup, Certification, SectionType, CustomSection } from "@/lib/types";
 import { FormSection } from "./form-section";
-import { Plus, Trash2, ChevronDown, ChevronUp, X, GripVertical, RotateCcw, Layers, User, Image, Type } from "lucide-react";
+import { Plus, Trash2, ChevronDown, ChevronUp, X, GripVertical, RotateCcw, Layers, User, Image, Type, Sparkles, Loader2, Code } from "lucide-react";
 import { useState, KeyboardEvent, useEffect } from "react";
 import { motion, AnimatePresence, Reorder } from "framer-motion";
+import { polishText, generateSummary } from "@/lib/ai-polish";
 
 interface ResumeFormProps {
   initialData: ResumeData;
@@ -136,6 +137,10 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
   });
 
   const [activeSkillSearch, setActiveSkillSearch] = useState<{ group: number, query: string } | null>(null);
+  const [polishingId, setPolishingId] = useState<string | null>(null);
+  const [isGithubLoading, setIsGithubLoading] = useState(false);
+  const [isGithubModalOpen, setIsGithubModalOpen] = useState(false);
+  const [githubInput, setGithubInput] = useState("");
 
   const formData = watch();
 
@@ -164,9 +169,87 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
     return () => subscription.unsubscribe();
   }, [watch, onChange]);
 
+  const fetchGithubRepos = async () => {
+    const githubLink = githubInput || watch("personalInfo.github");
+    if (!githubLink) {
+      alert("Please enter your GitHub username or profile link.");
+      return;
+    }
+
+    // Extract username from link or just use it if it's already a username
+    const username = githubLink
+      .replace(/^(https?:\/\/)?(www\.)?github\.com\//i, "")
+      .replace(/^@/, "") // Handle cases like @username
+      .split("/")[0]
+      .split("?")[0]
+      .trim();
+    
+    if (!username || username.toLowerCase() === "github.com") {
+      alert("Invalid GitHub username. Please enter a valid username or profile link.");
+      return;
+    }
+
+    setIsGithubLoading(true);
+    try {
+      const response = await fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=6`);
+      if (!response.ok) throw new Error("User not found or API limit reached.");
+      const repos = await response.json();
+
+      const newProjects = repos.map((repo: any) => ({
+        id: Math.random().toString(),
+        name: repo.name.replace(/-/g, " ").replace(/_/g, " "),
+        description: [repo.description || "Developed a high-performance repository using modern technical standards."],
+        technologies: repo.language ? [repo.language] : [],
+        link: repo.html_url
+      }));
+
+      // Append each project one by one to ensure useFieldArray registers them all in the UI
+      newProjects.forEach((proj: any) => {
+        appendProj(proj);
+      });
+      
+      setIsGithubModalOpen(false);
+      setGithubInput("");
+      alert(`Successfully imported ${newProjects.length} projects from GitHub!`);
+    } catch (err) {
+      alert("Error fetching GitHub projects. Please check your username and try again.");
+    } finally {
+      setIsGithubLoading(false);
+    }
+  };
+
   const sections: Record<string, React.ReactNode> = {
     summary: (
-      <FormSection title="Professional Summary">
+      <FormSection
+        title="Professional Summary"
+        action={
+          <button
+            type="button"
+            disabled={polishingId === "summary" || (!watch("summary") && (formData.experience?.length || 0) === 0 && (formData.projects?.length || 0) === 0)}
+            onClick={async () => {
+              const currentSummary = watch("summary");
+              setPolishingId("summary");
+              if (currentSummary) {
+                const polished = await polishText(currentSummary);
+                setValue("summary", polished);
+              } else {
+                const generated = await generateSummary(formData);
+                setValue("summary", generated);
+              }
+              setPolishingId(null);
+            }}
+            className="flex items-center gap-2 p-1.5 px-3 rounded-xl bg-accent text-background hover:scale-105 active:scale-95 transition-all shadow-lg shadow-accent/20 text-[10px] font-bold uppercase disabled:opacity-30 disabled:scale-100 disabled:cursor-not-allowed"
+            title={!watch("summary") && (formData.experience?.length || 0) === 0 && (formData.projects?.length || 0) === 0 ? "Add content first to use AI assistant" : "AI Refine/Generate Summary"}
+          >
+            {polishingId === "summary" ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="w-3.5 h-3.5" />
+            )}
+            <span>{watch("summary") ? "AI Refine" : "AI Generate"}</span>
+          </button>
+        }
+      >
         <textarea
           {...register("summary")}
           placeholder="Briefly describe your professional background and key strengths..."
@@ -177,20 +260,36 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
     experience: (
       <FormSection title="Experience">
         {expFields.map((field, index) => (
-          <div key={field.id} className="p-4 bg-secondary/50 rounded-2xl mb-4 relative group">
-            <button
-              onClick={() => removeExp(index)}
-              className="absolute top-2 right-2 p-1 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+          <div key={field.id} className="p-5 bg-secondary/30 rounded-3xl mb-6 relative group border border-white/5">
+            <div className="flex justify-between items-center mb-4 no-print border-b border-white/5 pb-3">
+              <span className="text-[10px] font-black uppercase tracking-widest opacity-20">Experience #{index + 1}</span>
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-2 cursor-pointer group/check bg-background/50 hover:bg-accent hover:text-background p-1.5 px-3 rounded-xl border border-white/10 transition-all shadow-sm">
+                  <input
+                    type="checkbox"
+                    {...register(`experience.${index}.isInternship`)}
+                    className="w-3.5 h-3.5 rounded accent-current bg-secondary border-white/10 cursor-pointer"
+                  />
+                  <span className="text-[9px] font-bold uppercase tracking-wider">Internship</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => removeExp(index)}
+                  className="p-1.5 hover:bg-red-500 hover:text-white rounded-xl text-red-500/40 transition-all"
+                  title="Remove Experience"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium opacity-70 mb-1">Company</label>
                 <input
                   {...register(`experience.${index}.company`)}
                   placeholder="e.g. Google"
-                  className="w-full bg-secondary rounded-xl p-2 outline-none focus:ring-2 focus:ring-accent transition-all"
+                  className="w-full bg-secondary/50 rounded-xl p-2 outline-none focus:ring-2 focus:ring-accent transition-all border border-transparent focus:border-accent/20"
                 />
               </div>
               <div>
@@ -245,12 +344,33 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
                       exit={{ opacity: 0, x: 10 }}
                       className="flex gap-2 items-center group/bullet"
                     >
-                      <span className="text-accent font-bold">•</span>
-                      <input
-                        {...register(`experience.${index}.description.${bulletIndex}`)}
-                        placeholder="Describe what you did..."
-                        className="flex-1 bg-secondary/50 rounded-xl p-2 outline-none focus:ring-2 focus:ring-accent transition-all"
-                      />
+                      <div className="flex-1 relative group/ai">
+                        <input
+                          {...register(`experience.${index}.description.${bulletIndex}`)}
+                          placeholder="Describe what you did..."
+                          className="w-full bg-secondary/50 rounded-xl p-2 pr-10 outline-none focus:ring-2 focus:ring-accent transition-all"
+                        />
+                        <button
+                          type="button"
+                          disabled={polishingId === `exp-${index}-${bulletIndex}`}
+                          onClick={async () => {
+                            const currentText = watch(`experience.${index}.description.${bulletIndex}`);
+                            if (!currentText) return;
+                            setPolishingId(`exp-${index}-${bulletIndex}`);
+                            const polished = await polishText(currentText);
+                            setValue(`experience.${index}.description.${bulletIndex}`, polished);
+                            setPolishingId(null);
+                          }}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-accent opacity-0 group-hover/ai:opacity-100 transition-all hover:bg-accent/10"
+                          title="AI Polish"
+                        >
+                          {polishingId === `exp-${index}-${bulletIndex}` ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Sparkles className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                      </div>
                       <button
                         type="button"
                         onClick={() => {
@@ -284,6 +404,7 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
           </div>
         ))}
         <button
+          type="button"
           onClick={() => appendExp({ id: Math.random().toString(), company: "", position: "", location: "", startDate: "", endDate: "", description: [""] })}
           className="flex items-center gap-2 text-sm font-medium opacity-70 hover:opacity-100 hover:text-accent transition-all"
         >
@@ -296,6 +417,7 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
         {eduFields.map((field, index) => (
           <div key={field.id} className="p-4 bg-secondary/50 rounded-2xl mb-4 relative group">
             <button
+              type="button"
               onClick={() => removeEdu(index)}
               className="absolute top-2 right-2 p-1 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
             >
@@ -353,6 +475,7 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
           </div>
         ))}
         <button
+          type="button"
           onClick={() => appendEdu({ id: Math.random().toString(), school: "", degree: "", location: "", startDate: "", endDate: "" })}
           className="flex items-center gap-2 text-sm font-medium opacity-70 hover:opacity-100 hover:text-accent transition-all"
         >
@@ -366,6 +489,7 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
           {skillGroupFields.map((field, groupIndex) => (
             <div key={field.id} className="p-4 bg-secondary/30 rounded-2xl relative group">
               <button
+                type="button"
                 onClick={() => removeSkillGroup(groupIndex)}
                 className="absolute top-2 right-2 p-1 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
               >
@@ -484,6 +608,7 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
           ))}
 
           <button
+            type="button"
             onClick={() => appendSkillGroup({ id: Math.random().toString(), category: "", skills: [] })}
             className="flex items-center gap-2 text-sm font-medium opacity-70 hover:opacity-100 hover:text-accent transition-all"
           >
@@ -493,10 +618,23 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
       </FormSection>
     ),
     projects: (
-      <FormSection title="Projects">
+      <FormSection
+        title="Projects"
+        action={
+          <button
+            type="button"
+            onClick={() => setIsGithubModalOpen(true)}
+            className="flex items-center gap-2 p-1.5 px-3 rounded-xl bg-accent text-background hover:scale-105 active:scale-95 transition-all shadow-lg shadow-accent/20 text-[10px] font-bold uppercase"
+          >
+            <Code className="w-3.5 h-3.5" />
+            <span>Import from GitHub</span>
+          </button>
+        }
+      >
         {projFields.map((field, index) => (
           <div key={field.id} className="p-4 bg-secondary/50 rounded-2xl mb-4 relative group">
             <button
+              type="button"
               onClick={() => removeProj(index)}
               className="absolute top-2 right-2 p-1 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
             >
@@ -604,12 +742,33 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
                       exit={{ opacity: 0, x: 10 }}
                       className="flex gap-2 items-center group/bullet"
                     >
-                      <span className="text-accent font-bold">•</span>
-                      <input
-                        {...register(`projects.${index}.description.${bulletIndex}`)}
-                        placeholder="Describe what you built..."
-                        className="flex-1 bg-secondary/50 rounded-xl p-2 outline-none focus:ring-2 focus:ring-accent transition-all"
-                      />
+                      <div className="flex-1 relative group/ai">
+                        <input
+                          {...register(`projects.${index}.description.${bulletIndex}`)}
+                          placeholder="Describe what you built..."
+                          className="w-full bg-secondary/50 rounded-xl p-2 pr-10 outline-none focus:ring-2 focus:ring-accent transition-all"
+                        />
+                        <button
+                          type="button"
+                          disabled={polishingId === `proj-${index}-${bulletIndex}`}
+                          onClick={async () => {
+                            const currentText = watch(`projects.${index}.description.${bulletIndex}`);
+                            if (!currentText) return;
+                            setPolishingId(`proj-${index}-${bulletIndex}`);
+                            const polished = await polishText(currentText);
+                            setValue(`projects.${index}.description.${bulletIndex}`, polished);
+                            setPolishingId(null);
+                          }}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-accent opacity-0 group-hover/ai:opacity-100 transition-all hover:bg-accent/10"
+                          title="AI Polish"
+                        >
+                          {polishingId === `proj-${index}-${bulletIndex}` ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Sparkles className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                      </div>
                       <button
                         type="button"
                         onClick={() => {
@@ -655,6 +814,7 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
         {certFields.map((field, index: number) => (
           <div key={field.id} className="p-4 bg-secondary/50 rounded-2xl mb-4 relative group">
             <button
+              type="button"
               onClick={() => removeCert(index)}
               className="absolute top-2 right-2 p-1 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
             >
@@ -786,11 +946,33 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
                       <div className="space-y-2">
                         {(watch(`customSections.${sectionIndex}.items.${itemIndex}.description`) || []).map((desc: string, descIndex: number) => (
                           <div key={descIndex} className="flex gap-2">
-                            <input
-                              {...register(`customSections.${sectionIndex}.items.${itemIndex}.description.${descIndex}`)}
-                              className="flex-1 bg-secondary rounded-xl p-2 outline-none focus:ring-2 focus:ring-accent transition-all"
-                              placeholder="Add a detail..."
-                            />
+                            <div className="flex-1 relative group/ai">
+                              <input
+                                {...register(`customSections.${sectionIndex}.items.${itemIndex}.description.${descIndex}`)}
+                                className="w-full bg-secondary rounded-xl p-2 pr-10 outline-none focus:ring-2 focus:ring-accent transition-all"
+                                placeholder="Add a detail..."
+                              />
+                              <button
+                                type="button"
+                                disabled={polishingId === `custom-${sectionIndex}-${itemIndex}-${descIndex}`}
+                                onClick={async () => {
+                                  const currentText = watch(`customSections.${sectionIndex}.items.${itemIndex}.description.${descIndex}`);
+                                  if (!currentText) return;
+                                  setPolishingId(`custom-${sectionIndex}-${itemIndex}-${descIndex}`);
+                                  const polished = await polishText(currentText);
+                                  setValue(`customSections.${sectionIndex}.items.${itemIndex}.description.${descIndex}`, polished);
+                                  setPolishingId(null);
+                                }}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-accent opacity-0 group-hover/ai:opacity-100 transition-all hover:bg-accent/10"
+                                title="AI Polish"
+                              >
+                                {polishingId === `custom-${sectionIndex}-${itemIndex}-${descIndex}` ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <Sparkles className="w-3.5 h-3.5" />
+                                )}
+                              </button>
+                            </div>
                             <button
                               type="button"
                               onClick={() => {
@@ -1019,6 +1201,83 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
           </div>
         ))}
       </div>
+
+      {/* GitHub Import Modal */}
+      <AnimatePresence>
+        {isGithubModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 no-print">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsGithubModalOpen(false)}
+              className="absolute inset-0 bg-background/80 backdrop-blur-md"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-md bg-secondary rounded-3xl border border-white/10 shadow-2xl overflow-hidden p-6"
+            >
+              <button
+                onClick={() => setIsGithubModalOpen(false)}
+                className="absolute top-4 right-4 p-2 hover:bg-white/5 rounded-xl transition-all"
+              >
+                <X className="w-5 h-5 opacity-50" />
+              </button>
+
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-accent/10 rounded-2xl">
+                  <Code className="w-6 h-6 text-accent" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold">Import Projects</h3>
+                  <p className="text-sm opacity-50 text-balance">Fetch your top repos from GitHub</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium opacity-70 mb-1.5">GitHub Username or Profile Link</label>
+                  <input
+                    type="text"
+                    value={githubInput}
+                    onChange={(e) => setGithubInput(e.target.value)}
+                    placeholder="e.g. github.com/username"
+                    className="w-full bg-background rounded-2xl p-3 outline-none focus:ring-2 focus:ring-accent transition-all"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        fetchGithubRepos();
+                      }
+                    }}
+                  />
+                </div>
+
+                <button
+                  onClick={fetchGithubRepos}
+                  disabled={isGithubLoading || !githubInput}
+                  className="w-full py-4 rounded-2xl bg-accent text-background font-bold shadow-lg shadow-accent/20 hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:scale-100 transition-all flex items-center justify-center gap-2"
+                >
+                  {isGithubLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <Plus className="w-5 h-5" />
+                      <span>Fetch Projects</span>
+                    </>
+                  )}
+                </button>
+
+                <p className="text-[10px] text-center opacity-30 px-6">
+                  This will fetch your most recently updated repositories and add them to your project list.
+                </p>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

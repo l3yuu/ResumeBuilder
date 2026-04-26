@@ -105,7 +105,7 @@ export const ResumePreview = React.forwardRef<HTMLDivElement, ResumePreviewProps
                   </section>
                 );
               case "experience":
-                return (
+                return data.experience && data.experience.length > 0 && (
                   <section key="experience">
                     <h2 className={themeStyles.sectionTitle} style={data.theme === "creative" ? { borderLeftColor: themeStyles.accent, color: themeStyles.accent } : { borderColor: themeStyles.accent, color: themeStyles.accent }}>
                       Professional Experience
@@ -119,7 +119,10 @@ export const ResumePreview = React.forwardRef<HTMLDivElement, ResumePreviewProps
                           </span>
                         </div>
                         <div className="flex justify-between items-baseline mb-1">
-                          <span className="italic">{exp.position}</span>
+                          <span className="italic">
+                            {exp.position}
+                            {exp.isInternship && <span className="opacity-60 text-[0.85em] font-normal not-italic"> (Internship)</span>}
+                          </span>
                           <span className="text-sm">{exp.location}</span>
                         </div>
                         <ul className="list-disc ml-5 text-sm space-y-1">
@@ -132,7 +135,7 @@ export const ResumePreview = React.forwardRef<HTMLDivElement, ResumePreviewProps
                   </section>
                 );
               case "education":
-                return (
+                return data.education && data.education.length > 0 && (
                   <section key="education">
                     <h2 className={themeStyles.sectionTitle} style={data.theme === "creative" ? { borderLeftColor: themeStyles.accent, color: themeStyles.accent } : { borderColor: themeStyles.accent, color: themeStyles.accent }}>
                       Education
@@ -154,7 +157,7 @@ export const ResumePreview = React.forwardRef<HTMLDivElement, ResumePreviewProps
                   </section>
                 );
               case "skills":
-                return (
+                return data.skillGroups && data.skillGroups.length > 0 && (
                   <section key="skills">
                     <h2 className={themeStyles.sectionTitle} style={data.theme === "creative" ? { borderLeftColor: themeStyles.accent, color: themeStyles.accent } : { borderColor: themeStyles.accent, color: themeStyles.accent }}>
                       Skills
@@ -171,7 +174,7 @@ export const ResumePreview = React.forwardRef<HTMLDivElement, ResumePreviewProps
               case "certifications":
                 return data.certifications && data.certifications.length > 0 && (
                   <section key="certifications">
-                    <h2 className="text-lg font-bold border-b-2 border-black uppercase mb-2">
+                    <h2 className={themeStyles.sectionTitle} style={data.theme === "creative" ? { borderLeftColor: themeStyles.accent, color: themeStyles.accent } : { borderColor: themeStyles.accent, color: themeStyles.accent }}>
                       Certifications
                     </h2>
                     <div className="space-y-2">
@@ -189,9 +192,9 @@ export const ResumePreview = React.forwardRef<HTMLDivElement, ResumePreviewProps
                   </section>
                 );
               case "projects":
-                return (
+                return data.projects && data.projects.length > 0 && (
                   <section key="projects">
-                    <h2 className="text-lg font-bold border-b-2 border-black uppercase mb-2">
+                    <h2 className={themeStyles.sectionTitle} style={data.theme === "creative" ? { borderLeftColor: themeStyles.accent, color: themeStyles.accent } : { borderColor: themeStyles.accent, color: themeStyles.accent }}>
                       Projects
                     </h2>
                     {data.projects.map((proj) => (
@@ -221,7 +224,7 @@ export const ResumePreview = React.forwardRef<HTMLDivElement, ResumePreviewProps
                   <div key="custom" className="space-y-4">
                     {data.customSections.map((section) => (
                       <section key={section.id} className="mb-2">
-                        <h2 className="text-lg font-bold border-b-2 border-black uppercase mb-1.5">
+                        <h2 className={themeStyles.sectionTitle} style={data.theme === "creative" ? { borderLeftColor: themeStyles.accent, color: themeStyles.accent } : { borderColor: themeStyles.accent, color: themeStyles.accent }}>
                           {section.title || "Custom Section"}
                         </h2>
                         {section.items?.map((item) => (
