@@ -74,6 +74,8 @@ export interface ResumeData {
   projects: Project[];
   certifications: Certification[];
   customSections: CustomSection[];
+  theme: "modern" | "executive" | "creative" | "minimal";
+  accentColor: string;
   font: "sans" | "serif" | "mono";
 }
 
@@ -149,4 +151,6 @@ export const initialData: ResumeData = {
     },
   ],
   customSections: [],
+  theme: "modern",
+  accentColor: "#000000",
 };

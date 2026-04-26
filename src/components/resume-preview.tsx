@@ -10,23 +10,50 @@ interface ResumePreviewProps {
 
 export const ResumePreview = React.forwardRef<HTMLDivElement, ResumePreviewProps>(
   ({ data }, ref) => {
+    const themeStyles = {
+      modern: {
+        container: "font-sans",
+        header: "border-b-2 border-black pb-2 mb-4 flex gap-6 items-start",
+        sectionTitle: "text-lg font-bold border-b-2 border-black uppercase mb-1.5",
+        accent: data.accentColor || "#000000"
+      },
+      executive: {
+        container: "font-serif text-slate-900",
+        header: "border-b-4 border-double border-black pb-4 mb-6 flex flex-col items-center text-center",
+        sectionTitle: "text-base font-bold border-b border-black tracking-[0.2em] uppercase mb-2 text-center",
+        accent: data.accentColor || "#1e293b"
+      },
+      creative: {
+        container: "font-sans",
+        header: "bg-slate-900 text-white p-8 -mx-[15mm] -mt-[15mm] mb-6 flex gap-6 items-center",
+        sectionTitle: "text-xl font-black text-slate-900 border-l-4 border-slate-900 pl-3 uppercase mb-3",
+        accent: data.accentColor || "#0f172a"
+      },
+      minimal: {
+        container: "font-sans text-[13px] leading-tight",
+        header: "mb-8 flex justify-between items-end",
+        sectionTitle: "text-xs font-bold tracking-widest text-slate-400 uppercase mb-2",
+        accent: data.accentColor || "#000000"
+      }
+    }[data.theme || "modern"];
+
     return (
       <div
         ref={ref}
-        className="resume-container w-[210mm] min-h-[297mm] mx-auto bg-white text-black p-[15mm] shadow-2xl font-sans border border-black/10 dark:border-transparent"
+        className={`resume-container w-[210mm] min-h-[297mm] mx-auto bg-white text-black p-[15mm] shadow-2xl border border-black/10 dark:border-transparent ${themeStyles.container}`}
       >
         {/* Header */}
-        <header className="border-b-2 border-black pb-2 mb-4 flex gap-6 items-start">
+        <header className={themeStyles.header} style={data.theme === "creative" ? { backgroundColor: themeStyles.accent } : {}}>
           {data.personalInfo.profilePic && (
-            <div className="w-24 h-24 overflow-hidden border-2 border-black flex-shrink-0 shadow-sm">
+            <div className={`w-24 h-24 overflow-hidden border-2 border-black flex-shrink-0 shadow-sm ${data.theme === "creative" ? "rounded-full" : ""}`}>
               <img src={data.personalInfo.profilePic} alt="Profile" className="w-full h-full object-cover" />
             </div>
           )}
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold uppercase tracking-tight mb-1">
+          <div className={data.theme === "minimal" ? "flex-1" : "flex-1"}>
+            <h1 className={`font-bold uppercase tracking-tight mb-1 ${data.theme === "executive" ? "text-4xl" : "text-3xl"}`} style={data.theme !== "creative" ? { color: themeStyles.accent } : {}}>
               {data.personalInfo.fullName}
             </h1>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-base">
+            <div className={`flex flex-wrap gap-x-4 gap-y-1 text-base ${data.theme === "executive" || data.theme === "minimal" ? "justify-center" : ""}`}>
               {data.personalInfo.email && (
                 <span className="flex items-center gap-1">
                   <Mail className="w-4 h-4" /> {data.personalInfo.email}
@@ -43,7 +70,7 @@ export const ResumePreview = React.forwardRef<HTMLDivElement, ResumePreviewProps
                 </span>
               )}
             </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-base mt-1">
+            <div className={`flex flex-wrap gap-x-4 gap-y-1 text-base mt-1 ${data.theme === "executive" || data.theme === "minimal" ? "justify-center" : ""}`}>
               {data.personalInfo.website && (
                 <span className="flex items-center gap-1">
                   <Globe className="w-4 h-4" /> {data.personalInfo.website.replace(/^https?:\/\//, "")}
@@ -69,7 +96,7 @@ export const ResumePreview = React.forwardRef<HTMLDivElement, ResumePreviewProps
               case "summary":
                 return data.summary && (
                   <section key="summary">
-                    <h2 className="text-lg font-bold border-b-2 border-black uppercase mb-1.5">
+                    <h2 className={themeStyles.sectionTitle} style={data.theme === "creative" ? { borderLeftColor: themeStyles.accent, color: themeStyles.accent } : { borderColor: themeStyles.accent, color: themeStyles.accent }}>
                       Professional Summary
                     </h2>
                     <p className="text-sm leading-relaxed whitespace-pre-wrap">
@@ -80,13 +107,13 @@ export const ResumePreview = React.forwardRef<HTMLDivElement, ResumePreviewProps
               case "experience":
                 return (
                   <section key="experience">
-                    <h2 className="text-lg font-bold border-b-2 border-black uppercase mb-2">
+                    <h2 className={themeStyles.sectionTitle} style={data.theme === "creative" ? { borderLeftColor: themeStyles.accent, color: themeStyles.accent } : { borderColor: themeStyles.accent, color: themeStyles.accent }}>
                       Professional Experience
                     </h2>
                     {data.experience.map((exp) => (
                       <div key={exp.id} className="mb-3">
                         <div className="flex justify-between items-baseline">
-                          <h3 className="font-bold text-lg">{exp.company}</h3>
+                          <h3 className="font-bold text-lg" style={data.theme === "minimal" ? { color: themeStyles.accent } : {}}>{exp.company}</h3>
                           <span className="text-sm font-medium">
                             {exp.startDate} – {exp.endDate}
                           </span>
@@ -107,13 +134,13 @@ export const ResumePreview = React.forwardRef<HTMLDivElement, ResumePreviewProps
               case "education":
                 return (
                   <section key="education">
-                    <h2 className="text-lg font-bold border-b-2 border-black uppercase mb-2">
+                    <h2 className={themeStyles.sectionTitle} style={data.theme === "creative" ? { borderLeftColor: themeStyles.accent, color: themeStyles.accent } : { borderColor: themeStyles.accent, color: themeStyles.accent }}>
                       Education
                     </h2>
                     {data.education.map((edu) => (
                       <div key={edu.id} className="mb-1.5">
                         <div className="flex justify-between items-baseline">
-                          <h3 className="font-bold">{edu.school}</h3>
+                          <h3 className="font-bold" style={data.theme === "minimal" ? { color: themeStyles.accent } : {}}>{edu.school}</h3>
                           <span className="text-sm font-medium">
                             {edu.startDate} – {edu.endDate}
                           </span>
@@ -129,13 +156,13 @@ export const ResumePreview = React.forwardRef<HTMLDivElement, ResumePreviewProps
               case "skills":
                 return (
                   <section key="skills">
-                    <h2 className="text-lg font-bold border-b-2 border-black uppercase mb-2">
+                    <h2 className={themeStyles.sectionTitle} style={data.theme === "creative" ? { borderLeftColor: themeStyles.accent, color: themeStyles.accent } : { borderColor: themeStyles.accent, color: themeStyles.accent }}>
                       Skills
                     </h2>
                     <div className="space-y-1">
                       {data.skillGroups.map((group) => (
                         <div key={group.id} className="text-sm">
-                          <span className="font-bold">{group.category}:</span> {group.skills.join(", ")}
+                          <span className="font-bold" style={{ color: themeStyles.accent }}>{group.category}:</span> {group.skills.join(", ")}
                         </div>
                       ))}
                     </div>
