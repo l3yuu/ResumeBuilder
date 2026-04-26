@@ -189,6 +189,36 @@ export const ResumePreview = React.forwardRef<HTMLDivElement, ResumePreviewProps
                     ))}
                   </section>
                 );
+              case "custom":
+                return data.customSections && data.customSections.length > 0 && (
+                  <div key="custom" className="space-y-4">
+                    {data.customSections.map((section) => (
+                      <section key={section.id} className="mb-2">
+                        <h2 className="text-lg font-bold border-b-2 border-black uppercase mb-1.5">
+                          {section.title || "Custom Section"}
+                        </h2>
+                        {section.items?.map((item) => (
+                          <div key={item.id} className="mb-2">
+                            <div className="flex justify-between items-baseline">
+                              <h3 className="font-bold">{item.title}</h3>
+                              <span className="text-sm font-medium">
+                                {item.date}
+                              </span>
+                            </div>
+                            {item.subtitle && (
+                              <div className="text-sm italic">{item.subtitle}</div>
+                            )}
+                            <ul className="list-disc ml-5 text-sm space-y-1">
+                              {item.description?.map((bullet, i) => (
+                                <li key={i}>{bullet}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </section>
+                    ))}
+                  </div>
+                );
               default:
                 return null;
             }

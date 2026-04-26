@@ -1,7 +1,7 @@
 "use client";
 
 import { useForm, useFieldArray, Controller } from "react-hook-form";
-import { ResumeData, Experience, Education, Project, SkillGroup, Certification, SectionType } from "@/lib/types";
+import { ResumeData, Experience, Education, Project, SkillGroup, Certification, SectionType, CustomSection } from "@/lib/types";
 import { FormSection } from "./form-section";
 import { Plus, Trash2, ChevronDown, ChevronUp, X, GripVertical, RotateCcw, Layers, User, Image, Type } from "lucide-react";
 import { useState, KeyboardEvent, useEffect } from "react";
@@ -129,6 +129,13 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
     control,
     name: "certifications",
   });
+
+  const { fields: customFields, append: appendCustom, remove: removeCustom } = useFieldArray({
+    control,
+    name: "customSections"
+  });
+
+  const [activeSkillSearch, setActiveSkillSearch] = useState<{ group: number, query: string } | null>(null);
 
   const formData = watch();
 
@@ -404,10 +411,13 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
                   </AnimatePresence>
                 </div>
 
-                <div className="relative">
+                 <div className="relative">
                   <input
                     placeholder="Type a skill and press Enter..."
                     className="w-full bg-secondary rounded-xl p-2 outline-none focus:ring-2 focus:ring-accent"
+                    onChange={(e) => setActiveSkillSearch({ group: groupIndex, query: e.target.value })}
+                    onFocus={() => setActiveSkillSearch({ group: groupIndex, query: "" })}
+                    onBlur={() => setTimeout(() => setActiveSkillSearch(null), 200)}
                     onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
@@ -420,10 +430,33 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
                             onChange({ ...formData, skillGroups: updatedGroups });
                           }
                           e.currentTarget.value = '';
+                          setActiveSkillSearch({ group: groupIndex, query: "" });
                         }
                       }
                     }}
                   />
+                  {activeSkillSearch?.group === groupIndex && activeSkillSearch.query && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-secondary border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden max-h-48 overflow-y-auto backdrop-blur-md">
+                      {SKILL_SUGGESTIONS
+                        .filter(s => s.toLowerCase().includes(activeSkillSearch.query.toLowerCase()) && !watch(`skillGroups.${groupIndex}.skills`)?.includes(s))
+                        .map((suggestion) => (
+                          <button
+                            key={suggestion}
+                            type="button"
+                            onClick={() => {
+                              const currentSkills = watch(`skillGroups.${groupIndex}.skills`) || [];
+                              const updatedGroups = [...formData.skillGroups];
+                              updatedGroups[groupIndex].skills = [...currentSkills, suggestion];
+                              onChange({ ...formData, skillGroups: updatedGroups });
+                              setActiveSkillSearch(null);
+                            }}
+                            className="w-full text-left px-4 py-2 hover:bg-accent hover:text-background text-sm transition-colors"
+                          >
+                            {suggestion}
+                          </button>
+                        ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="mt-4">
@@ -667,11 +700,151 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
           </div>
         ))}
         <button
-          onClick={() => appendCert({ id: Math.random().toString(), name: "", issuer: "", date: "", link: "" })}
-          className="flex items-center gap-2 text-sm font-medium opacity-70 hover:opacity-100 hover:text-accent transition-all"
+          type="button"
+          onClick={() => appendCert({ id: Date.now().toString(), name: "", issuer: "", date: YEARS[0], link: "" })}
+          className="flex items-center gap-2 text-sm font-medium opacity-70 hover:opacity-100 hover:text-accent transition-all mt-4"
         >
           <Plus className="w-4 h-4" /> Add Certification
         </button>
+      </FormSection>
+    ),
+    custom: (
+      <FormSection title="Custom Sections">
+        <div className="space-y-8">
+          {customFields.map((section, sectionIndex) => (
+            <div key={section.id} className="p-6 bg-secondary/30 rounded-2xl border border-white/5 relative">
+              <button
+                type="button"
+                onClick={() => removeCustom(sectionIndex)}
+                className="absolute top-4 right-4 text-red-500/50 hover:text-red-500 transition-colors"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium opacity-70 mb-1">Section Title</label>
+                <input
+                  {...register(`customSections.${sectionIndex}.title`)}
+                  placeholder="e.g. Awards, Volunteering"
+                  className="w-full bg-secondary rounded-xl p-3 outline-none focus:ring-2 focus:ring-accent transition-all font-bold text-lg"
+                />
+              </div>
+
+              <div className="space-y-6">
+                {(watch(`customSections.${sectionIndex}.items`) || []).map((item: any, itemIndex: number) => (
+                  <div key={itemIndex} className="bg-secondary/50 p-4 rounded-xl space-y-4 relative">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const currentItems = watch(`customSections.${sectionIndex}.items`);
+                        const newItems = currentItems.filter((_: any, i: number) => i !== itemIndex);
+                        const updatedSections = [...formData.customSections];
+                        updatedSections[sectionIndex].items = newItems;
+                        onChange({ ...formData, customSections: updatedSections });
+                      }}
+                      className="absolute top-2 right-2 text-red-500/30 hover:text-red-500 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium opacity-70 mb-1">Title</label>
+                        <input
+                          {...register(`customSections.${sectionIndex}.items.${itemIndex}.title`)}
+                          placeholder="e.g. Dean's List"
+                          className="w-full bg-secondary rounded-xl p-2 outline-none focus:ring-2 focus:ring-accent transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium opacity-70 mb-1">Subtitle (Optional)</label>
+                        <input
+                          {...register(`customSections.${sectionIndex}.items.${itemIndex}.subtitle`)}
+                          placeholder="e.g. Academic Excellence"
+                          className="w-full bg-secondary rounded-xl p-2 outline-none focus:ring-2 focus:ring-accent transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Controller
+                        control={control}
+                        name={`customSections.${sectionIndex}.items.${itemIndex}.date`}
+                        render={({ field: dField }) => (
+                          <DateSelect
+                            label="Date / Period"
+                            value={dField.value}
+                            onChange={dField.onChange}
+                            includePresent
+                          />
+                        )}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium opacity-70 mb-2">Description / Achievements</label>
+                      <div className="space-y-2">
+                        {(watch(`customSections.${sectionIndex}.items.${itemIndex}.description`) || []).map((desc: string, descIndex: number) => (
+                          <div key={descIndex} className="flex gap-2">
+                            <input
+                              {...register(`customSections.${sectionIndex}.items.${itemIndex}.description.${descIndex}`)}
+                              className="flex-1 bg-secondary rounded-xl p-2 outline-none focus:ring-2 focus:ring-accent transition-all"
+                              placeholder="Add a detail..."
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const currentDesc = watch(`customSections.${sectionIndex}.items.${itemIndex}.description`);
+                                const newDesc = currentDesc.filter((_: any, i: number) => i !== descIndex);
+                                const updatedSections = [...formData.customSections];
+                                updatedSections[sectionIndex].items[itemIndex].description = newDesc;
+                                onChange({ ...formData, customSections: updatedSections });
+                              }}
+                              className="text-red-500 opacity-50 hover:opacity-100"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const currentDesc = watch(`customSections.${sectionIndex}.items.${itemIndex}.description`) || [];
+                            const updatedSections = [...formData.customSections];
+                            updatedSections[sectionIndex].items[itemIndex].description = [...currentDesc, ""];
+                            onChange({ ...formData, customSections: updatedSections });
+                          }}
+                          className="flex items-center gap-2 text-sm font-medium opacity-70 hover:opacity-100 hover:text-accent transition-all mt-2"
+                        >
+                          <Plus className="w-3 h-3" /> Add Detail
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const currentItems = watch(`customSections.${sectionIndex}.items`) || [];
+                    const updatedSections = [...formData.customSections];
+                    updatedSections[sectionIndex].items = [...currentItems, { id: Date.now().toString(), title: "", subtitle: "", date: "", description: [] }];
+                    onChange({ ...formData, customSections: updatedSections });
+                  }}
+                  className="flex items-center gap-2 text-sm font-medium opacity-70 hover:opacity-100 hover:text-accent transition-all mt-2"
+                >
+                  <Plus className="w-4 h-4" /> Add Item to {watch(`customSections.${sectionIndex}.title`) || "this section"}
+                </button>
+              </div>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => appendCustom({ id: Date.now().toString(), title: "New Section", items: [] })}
+            className="w-full py-4 border-2 border-dashed border-white/10 rounded-2xl text-sm font-medium opacity-50 hover:opacity-100 hover:border-accent/50 hover:bg-accent/5 transition-all flex items-center justify-center gap-2"
+          >
+            <Plus className="w-5 h-5" /> Add Custom Section
+          </button>
+        </div>
       </FormSection>
     ),
   };

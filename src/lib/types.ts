@@ -50,7 +50,19 @@ export interface SkillGroup {
   skills: string[];
 }
 
-export type SectionType = "summary" | "experience" | "education" | "skills" | "projects" | "certifications";
+export interface CustomSection {
+  id: string;
+  title: string;
+  items: {
+    id: string;
+    title: string;
+    subtitle?: string;
+    date?: string;
+    description: string[];
+  }[];
+}
+
+export type SectionType = "summary" | "experience" | "education" | "skills" | "projects" | "certifications" | "custom";
 
 export interface ResumeData {
   personalInfo: PersonalInfo;
@@ -61,6 +73,7 @@ export interface ResumeData {
   skillGroups: SkillGroup[];
   projects: Project[];
   certifications: Certification[];
+  customSections: CustomSection[];
   font: "sans" | "serif" | "mono";
 }
 
@@ -76,7 +89,7 @@ export const initialData: ResumeData = {
     profilePic: "",
   },
   font: "sans",
-  sectionOrder: ["summary", "experience", "education", "skills", "projects", "certifications"],
+  sectionOrder: ["summary", "experience", "education", "skills", "projects", "certifications", "custom"],
   summary: "Results-driven Senior Developer with 5+ years of experience in building scalable web applications. Expert in React, Node.js, and cloud architecture.",
   experience: [
     {
@@ -135,4 +148,5 @@ export const initialData: ResumeData = {
       link: "https://aws.amazon.com/certification/",
     },
   ],
+  customSections: [],
 };
