@@ -13,9 +13,7 @@ export const ResumePreview = React.forwardRef<HTMLDivElement, ResumePreviewProps
     return (
       <div
         ref={ref}
-        className={`resume-container w-full max-w-[800px] mx-auto bg-white text-black p-8 shadow-2xl min-h-0 ${
-          data.font === "serif" ? "font-serif" : data.font === "mono" ? "font-mono" : "font-sans"
-        }`}
+        className="resume-container w-[210mm] min-h-[297mm] mx-auto bg-white text-black p-[15mm] shadow-2xl font-sans border border-black/10 dark:border-transparent"
       >
         {/* Header */}
         <header className="border-b-2 border-black pb-2 mb-4 flex gap-6 items-start">
@@ -28,37 +26,37 @@ export const ResumePreview = React.forwardRef<HTMLDivElement, ResumePreviewProps
             <h1 className="text-3xl font-bold uppercase tracking-tight mb-1">
               {data.personalInfo.fullName}
             </h1>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-base">
               {data.personalInfo.email && (
                 <span className="flex items-center gap-1">
-                  <Mail className="w-3 h-3" /> {data.personalInfo.email}
+                  <Mail className="w-4 h-4" /> {data.personalInfo.email}
                 </span>
               )}
               {data.personalInfo.phone && (
                 <span className="flex items-center gap-1">
-                  <Phone className="w-3 h-3" /> {data.personalInfo.phone}
+                  <Phone className="w-4 h-4" /> {data.personalInfo.phone}
                 </span>
               )}
               {data.personalInfo.location && (
                 <span className="flex items-center gap-1">
-                  <MapPin className="w-3 h-3" /> {data.personalInfo.location}
+                  <MapPin className="w-4 h-4" /> {data.personalInfo.location}
                 </span>
               )}
             </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm mt-1">
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-base mt-1">
               {data.personalInfo.website && (
                 <span className="flex items-center gap-1">
-                  <Globe className="w-3 h-3" /> {data.personalInfo.website.replace(/^https?:\/\//, "")}
+                  <Globe className="w-4 h-4" /> {data.personalInfo.website.replace(/^https?:\/\//, "")}
                 </span>
               )}
               {data.personalInfo.github && (
                 <span className="flex items-center gap-1">
-                  <LinkIcon className="w-3 h-3" /> {data.personalInfo.github}
+                  <LinkIcon className="w-4 h-4" /> {data.personalInfo.github}
                 </span>
               )}
               {data.personalInfo.linkedin && (
                 <span className="flex items-center gap-1">
-                  <LinkIcon className="w-3 h-3" /> {data.personalInfo.linkedin}
+                  <LinkIcon className="w-4 h-4" /> {data.personalInfo.linkedin}
                 </span>
               )}
             </div>

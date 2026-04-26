@@ -26,23 +26,23 @@ const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "
 const YEARS = Array.from({ length: 60 }, (_, i) => (new Date().getFullYear() - i).toString());
 const DEFAULT_SECTION_ORDER: SectionType[] = ["summary", "experience", "education", "skills", "projects", "certifications"];
 
-function DateSelect({ 
-  value = "", 
-  onChange, 
-  label, 
-  includePresent = false 
-}: { 
-  value?: string; 
-  onChange: (val: string) => void; 
+function DateSelect({
+  value = "",
+  onChange,
+  label,
+  includePresent = false
+}: {
+  value?: string;
+  onChange: (val: string) => void;
   label: string;
   includePresent?: boolean;
 }) {
   const isPresent = value === "Present";
-  
+
   // Improved parsing for robustness
   let vMonth = "";
   let vYear = "";
-  
+
   if (isPresent) {
     vYear = "Present";
   } else if (value) {
@@ -66,10 +66,10 @@ function DateSelect({
     if (!MONTHS.includes(vMonth)) vMonth = MONTHS[0];
     if (!YEARS.includes(vYear) && vYear !== "Present") vYear = YEARS[0];
   }
-  
+
   return (
     <div className="flex-1">
-      <label className="block text-xs font-bold uppercase tracking-wider opacity-50 mb-1">{label}</label>
+      <label className="block text-sm font-medium opacity-70 mb-1">{label}</label>
       <div className="flex gap-2">
         {!isPresent && (
           <select
@@ -177,25 +177,39 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
             >
               <Trash2 className="w-4 h-4" />
             </button>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                {...register(`experience.${index}.company`)}
-                placeholder="Company"
-                className="w-full bg-secondary rounded-xl p-2 outline-none"
-              />
-              <input
-                {...register(`experience.${index}.position`)}
-                placeholder="Position"
-                className="w-full bg-secondary rounded-xl p-2 outline-none"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium opacity-70 mb-1">Company</label>
+                <input
+                  {...register(`experience.${index}.company`)}
+                  placeholder="e.g. Google"
+                  className="w-full bg-secondary rounded-xl p-2 outline-none focus:ring-2 focus:ring-accent transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium opacity-70 mb-1">Position</label>
+                <input
+                  {...register(`experience.${index}.position`)}
+                  placeholder="e.g. Software Engineer"
+                  className="w-full bg-secondary rounded-xl p-2 outline-none focus:ring-2 focus:ring-accent transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium opacity-70 mb-1">Location</label>
+                <input
+                  {...register(`experience.${index}.location`)}
+                  placeholder="e.g. Mountain View, CA"
+                  className="w-full bg-secondary rounded-xl p-2 outline-none focus:ring-2 focus:ring-accent transition-all"
+                />
+              </div>
               <Controller
                 control={control}
                 name={`experience.${index}.startDate`}
                 render={({ field }) => (
-                  <DateSelect 
-                    label="Start Date" 
-                    value={field.value} 
-                    onChange={field.onChange} 
+                  <DateSelect
+                    label="Start Date"
+                    value={field.value}
+                    onChange={field.onChange}
                   />
                 )}
               />
@@ -203,21 +217,21 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
                 control={control}
                 name={`experience.${index}.endDate`}
                 render={({ field }) => (
-                  <DateSelect 
-                    label="End Date" 
-                    value={field.value} 
-                    onChange={field.onChange} 
-                    includePresent 
+                  <DateSelect
+                    label="End Date"
+                    value={field.value}
+                    onChange={field.onChange}
+                    includePresent
                   />
                 )}
               />
             </div>
             <div className="mt-6 space-y-3">
-              <label className="block text-xs font-bold uppercase tracking-wider opacity-50">Key Achievements</label>
+              <label className="block text-sm font-medium opacity-70 mb-1">Key Achievements</label>
               <div className="space-y-2">
                 <AnimatePresence>
                   {(watch(`experience.${index}.description`) || []).map((_, bulletIndex) => (
-                    <motion.div 
+                    <motion.div
                       key={`${field.id}-bullet-${bulletIndex}`}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -255,7 +269,7 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
                   updatedExp[index].description = [...currentDesc, ""];
                   onChange({ ...formData, experience: updatedExp });
                 }}
-                className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest opacity-50 hover:opacity-100 hover:text-accent transition-all mt-2"
+                className="flex items-center gap-2 text-sm font-medium opacity-70 hover:opacity-100 hover:text-accent transition-all mt-2"
               >
                 <Plus className="w-3 h-3" /> Add Achievement
               </button>
@@ -264,7 +278,7 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
         ))}
         <button
           onClick={() => appendExp({ id: Math.random().toString(), company: "", position: "", location: "", startDate: "", endDate: "", description: [""] })}
-          className="flex items-center gap-2 text-sm font-medium hover:opacity-70 transition-opacity"
+          className="flex items-center gap-2 text-sm font-medium opacity-70 hover:opacity-100 hover:text-accent transition-all"
         >
           <Plus className="w-4 h-4" /> Add Experience
         </button>
@@ -280,25 +294,39 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
             >
               <Trash2 className="w-4 h-4" />
             </button>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                {...register(`education.${index}.school`)}
-                placeholder="School"
-                className="w-full bg-secondary rounded-xl p-2 outline-none"
-              />
-              <input
-                {...register(`education.${index}.degree`)}
-                placeholder="Degree"
-                className="w-full bg-secondary rounded-xl p-2 outline-none"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium opacity-70 mb-1">School</label>
+                <input
+                  {...register(`education.${index}.school`)}
+                  placeholder="e.g. Harvard University"
+                  className="w-full bg-secondary rounded-xl p-2 outline-none focus:ring-2 focus:ring-accent transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium opacity-70 mb-1">Degree</label>
+                <input
+                  {...register(`education.${index}.degree`)}
+                  placeholder="e.g. B.S. in Computer Science"
+                  className="w-full bg-secondary rounded-xl p-2 outline-none focus:ring-2 focus:ring-accent transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium opacity-70 mb-1">Location</label>
+                <input
+                  {...register(`education.${index}.location`)}
+                  placeholder="e.g. Cambridge, MA"
+                  className="w-full bg-secondary rounded-xl p-2 outline-none focus:ring-2 focus:ring-accent transition-all"
+                />
+              </div>
               <Controller
                 control={control}
                 name={`education.${index}.startDate`}
                 render={({ field }) => (
-                  <DateSelect 
-                    label="Start Date" 
-                    value={field.value} 
-                    onChange={field.onChange} 
+                  <DateSelect
+                    label="Start Date"
+                    value={field.value}
+                    onChange={field.onChange}
                   />
                 )}
               />
@@ -306,11 +334,11 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
                 control={control}
                 name={`education.${index}.endDate`}
                 render={({ field }) => (
-                  <DateSelect 
-                    label="Graduation" 
-                    value={field.value} 
-                    onChange={field.onChange} 
-                    includePresent 
+                  <DateSelect
+                    label="Graduation"
+                    value={field.value}
+                    onChange={field.onChange}
+                    includePresent
                   />
                 )}
               />
@@ -319,7 +347,7 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
         ))}
         <button
           onClick={() => appendEdu({ id: Math.random().toString(), school: "", degree: "", location: "", startDate: "", endDate: "" })}
-          className="flex items-center gap-2 text-sm font-medium hover:opacity-70 transition-opacity"
+          className="flex items-center gap-2 text-sm font-medium opacity-70 hover:opacity-100 hover:text-accent transition-all"
         >
           <Plus className="w-4 h-4" /> Add Education
         </button>
@@ -336,9 +364,9 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
               >
                 <Trash2 className="w-4 h-4" />
               </button>
-              
+
               <div className="mb-4">
-                <label className="block text-xs font-bold uppercase tracking-wider opacity-50 mb-1">Category</label>
+                <label className="block text-sm font-medium opacity-70 mb-1">Category</label>
                 <input
                   {...register(`skillGroups.${groupIndex}.category`)}
                   placeholder="e.g. Frontend, Languages..."
@@ -347,7 +375,7 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider opacity-50 mb-2">Skills</label>
+                <label className="block text-sm font-medium opacity-70 mb-2">Skills</label>
                 <div className="flex flex-wrap gap-2 mb-3">
                   <AnimatePresence>
                     {watch(`skillGroups.${groupIndex}.skills`)?.map((skill, skillIndex) => (
@@ -399,18 +427,19 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
                 </div>
 
                 <div className="mt-4">
-                  <p className="text-[10px] font-bold uppercase tracking-widest opacity-40 mb-2">Suggestions</p>
-                  <div className="flex flex-wrap gap-1">
+                  <label className="block text-sm font-medium opacity-70 mb-1">Suggested</label>
+                  <div className="flex flex-wrap gap-2">
                     {SKILL_SUGGESTIONS.filter(s => !watch(`skillGroups.${groupIndex}.skills`)?.includes(s)).slice(0, 12).map((suggestion) => (
                       <button
                         key={suggestion}
+                        type="button"
                         onClick={() => {
                           const currentSkills = watch(`skillGroups.${groupIndex}.skills`) || [];
                           const updatedGroups = [...formData.skillGroups];
                           updatedGroups[groupIndex].skills = [...currentSkills, suggestion];
                           onChange({ ...formData, skillGroups: updatedGroups });
                         }}
-                        className="text-[10px] bg-secondary hover:bg-accent hover:text-background px-2 py-1 rounded-lg transition-colors"
+                        className="text-xs bg-secondary hover:bg-accent hover:text-background px-3 py-1.5 rounded-xl transition-all"
                       >
                         + {suggestion}
                       </button>
@@ -423,7 +452,7 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
 
           <button
             onClick={() => appendSkillGroup({ id: Math.random().toString(), category: "", skills: [] })}
-            className="flex items-center gap-2 text-sm font-medium hover:opacity-70 transition-opacity"
+            className="flex items-center gap-2 text-sm font-medium opacity-70 hover:opacity-100 hover:text-accent transition-all"
           >
             <Plus className="w-4 h-4" /> Add Skill Group
           </button>
@@ -441,20 +470,26 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
               <Trash2 className="w-4 h-4" />
             </button>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                {...register(`projects.${index}.name`)}
-                placeholder="Project Name"
-                className="w-full bg-secondary rounded-xl p-2 outline-none"
-              />
-              <input
-                {...register(`projects.${index}.link`)}
-                placeholder="Project Link"
-                className="w-full bg-secondary rounded-xl p-2 outline-none"
-              />
+              <div>
+                <label className="block text-sm font-medium opacity-70 mb-1">Project Name</label>
+                <input
+                  {...register(`projects.${index}.name`)}
+                  placeholder="e.g. Portfolio Website"
+                  className="w-full bg-secondary rounded-xl p-2 outline-none focus:ring-2 focus:ring-accent transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium opacity-70 mb-1">Project Link</label>
+                <input
+                  {...register(`projects.${index}.link`)}
+                  placeholder="e.g. github.com/username/repo"
+                  className="w-full bg-secondary rounded-xl p-2 outline-none focus:ring-2 focus:ring-accent transition-all"
+                />
+              </div>
             </div>
 
             <div className="mt-4">
-              <label className="block text-xs font-bold uppercase tracking-wider opacity-50 mb-2">Technologies</label>
+              <label className="block text-sm font-medium opacity-70 mb-1">Technologies</label>
               <div className="flex flex-wrap gap-2 mb-3">
                 <AnimatePresence>
                   {(watch(`projects.${index}.technologies`) || []).map((tech, techIndex) => (
@@ -463,7 +498,7 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       exit={{ scale: 0.8, opacity: 0 }}
-                      className="bg-accent/20 text-accent px-2 py-0.5 rounded-lg text-xs font-bold flex items-center gap-1.5 border border-accent/20"
+                      className="bg-accent text-background px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2"
                     >
                       {tech}
                       <button
@@ -503,30 +538,33 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
                   }}
                 />
               </div>
-              <div className="mt-2 flex flex-wrap gap-1">
-                {SKILL_SUGGESTIONS.filter(s => !watch(`projects.${index}.technologies`)?.includes(s)).slice(0, 8).map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    type="button"
-                    onClick={() => {
-                      const currentTech = watch(`projects.${index}.technologies`) || [];
-                      const updatedProj = [...formData.projects];
-                      updatedProj[index].technologies = [...currentTech, suggestion];
-                      onChange({ ...formData, projects: updatedProj });
-                    }}
-                    className="text-[9px] font-bold uppercase tracking-tighter bg-secondary hover:bg-accent hover:text-background px-2 py-0.5 rounded transition-colors opacity-60"
-                  >
-                    + {suggestion}
-                  </button>
-                ))}
+              <div className="mt-4">
+                <p className="text-sm font-medium opacity-70 mb-1">Suggested</p>
+                <div className="flex flex-wrap gap-2">
+                  {SKILL_SUGGESTIONS.filter(s => !watch(`projects.${index}.technologies`)?.includes(s)).slice(0, 8).map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      type="button"
+                      onClick={() => {
+                        const currentTech = watch(`projects.${index}.technologies`) || [];
+                        const updatedProj = [...formData.projects];
+                        updatedProj[index].technologies = [...currentTech, suggestion];
+                        onChange({ ...formData, projects: updatedProj });
+                      }}
+                      className="text-xs font-medium bg-secondary hover:bg-accent hover:text-background px-3 py-1.5 rounded-xl transition-all opacity-70 hover:opacity-100"
+                    >
+                      + {suggestion}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
             <div className="mt-6 space-y-3">
-              <label className="block text-xs font-bold uppercase tracking-wider opacity-50">Project Description</label>
+              <label className="block text-sm font-medium opacity-70 mb-1">Project Description</label>
               <div className="space-y-2">
                 <AnimatePresence>
                   {(watch(`projects.${index}.description`) || []).map((_, bulletIndex) => (
-                    <motion.div 
+                    <motion.div
                       key={`${field.id}-proj-bullet-${bulletIndex}`}
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -564,7 +602,7 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
                   updatedProj[index].description = [...currentDesc, ""];
                   onChange({ ...formData, projects: updatedProj });
                 }}
-                className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest opacity-50 hover:opacity-100 hover:text-accent transition-all mt-2"
+                className="flex items-center gap-2 text-sm font-medium opacity-70 hover:opacity-100 hover:text-accent transition-all mt-2"
               >
                 <Plus className="w-3 h-3" /> Add Detail
               </button>
@@ -573,7 +611,7 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
         ))}
         <button
           onClick={() => appendProj({ id: Math.random().toString(), name: "", description: [""], technologies: [], link: "" })}
-          className="flex items-center gap-2 text-sm font-medium hover:opacity-70 transition-opacity"
+          className="flex items-center gap-2 text-sm font-medium opacity-70 hover:opacity-100 hover:text-accent transition-all"
         >
           <Plus className="w-4 h-4" /> Add Project
         </button>
@@ -590,38 +628,47 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
               <Trash2 className="w-4 h-4" />
             </button>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                {...register(`certifications.${index}.name`)}
-                placeholder="Certification Name"
-                className="w-full bg-secondary rounded-xl p-2 outline-none"
-              />
-              <input
-                {...register(`certifications.${index}.issuer`)}
-                placeholder="Issuer"
-                className="w-full bg-secondary rounded-xl p-2 outline-none"
-              />
+              <div>
+                <label className="block text-sm font-medium opacity-70 mb-1">Certification Name</label>
+                <input
+                  {...register(`certifications.${index}.name`)}
+                  placeholder="e.g. AWS Solutions Architect"
+                  className="w-full bg-secondary rounded-xl p-2 outline-none focus:ring-2 focus:ring-accent transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium opacity-70 mb-1">Issuer</label>
+                <input
+                  {...register(`certifications.${index}.issuer`)}
+                  placeholder="e.g. Amazon Web Services"
+                  className="w-full bg-secondary rounded-xl p-2 outline-none focus:ring-2 focus:ring-accent transition-all"
+                />
+              </div>
               <Controller
                 control={control}
                 name={`certifications.${index}.date`}
                 render={({ field: dField }) => (
-                  <DateSelect 
-                    label="Date" 
-                    value={dField.value} 
-                    onChange={dField.onChange} 
+                  <DateSelect
+                    label="Date"
+                    value={dField.value}
+                    onChange={dField.onChange}
                   />
                 )}
               />
-              <input
-                {...register(`certifications.${index}.link`)}
-                placeholder="Credential Link"
-                className="w-full bg-secondary rounded-xl p-2 outline-none"
-              />
+              <div>
+                <label className="block text-sm font-medium opacity-70 mb-1">Credential Link</label>
+                <input
+                  {...register(`certifications.${index}.link`)}
+                  placeholder="e.g. link-to-credential.com"
+                  className="w-full bg-secondary rounded-xl p-2 outline-none focus:ring-2 focus:ring-accent transition-all"
+                />
+              </div>
             </div>
           </div>
         ))}
         <button
           onClick={() => appendCert({ id: Math.random().toString(), name: "", issuer: "", date: "", link: "" })}
-          className="flex items-center gap-2 text-sm font-medium hover:opacity-70 transition-opacity"
+          className="flex items-center gap-2 text-sm font-medium opacity-70 hover:opacity-100 hover:text-accent transition-all"
         >
           <Plus className="w-4 h-4" /> Add Certification
         </button>
@@ -643,51 +690,24 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Layers className="w-4 h-4 text-accent" />
-                  <h3 className="text-sm font-bold uppercase tracking-widest opacity-70">
+                  <h3 className="text-sm font-medium opacity-70">
                     Section Order
                   </h3>
                 </div>
                 <button
                   onClick={handleRestoreOrder}
-                  className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary hover:bg-accent hover:text-background transition-all opacity-50 hover:opacity-100"
+                  className="text-xs font-medium uppercase tracking-wider flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary hover:bg-accent hover:text-background transition-all opacity-50 hover:opacity-100"
                 >
                   <RotateCcw className="w-3 h-3" /> Restore Default
                 </button>
               </div>
-              <p className="text-[10px] opacity-40 uppercase tracking-tighter mb-4">Drag handles to rearrange the layout of your resume sections</p>
-              
-              <div className="grid grid-cols-2 gap-6 mb-6">
-                <div>
-                  <label className="block text-[10px] font-bold uppercase tracking-widest opacity-50 mb-3 flex items-center gap-1.5">
-                    <Type className="w-3 h-3" /> Typography
-                  </label>
-                  <div className="flex bg-secondary/40 rounded-xl p-1 border border-white/5">
-                    {(["sans", "serif", "mono"] as const).map((f) => (
-                      <button
-                        key={f}
-                        onClick={() => setValue("font", f)}
-                        className={`flex-1 py-2 text-xs font-bold capitalize rounded-lg transition-all ${
-                          watch("font") === f 
-                            ? "bg-accent text-background shadow-lg" 
-                            : "hover:bg-white/5 opacity-50 hover:opacity-100"
-                        }`}
-                      >
-                        {f}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                
-                <div className="flex items-end">
-                  <p className="text-[10px] opacity-40 leading-relaxed italic">
-                    Choose a font style that matches your industry. Serif is classic, Sans is modern, and Mono is technical.
-                  </p>
-                </div>
-              </div>
+              <p className="text-sm font-medium opacity-70 mb-4">Drag handles to rearrange the layout of your resume sections</p>
 
-              <Reorder.Group 
-                axis="y" 
-                values={orderedSections} 
+
+
+              <Reorder.Group
+                axis="y"
+                values={orderedSections}
                 onReorder={(newOrder) => {
                   setOrderedSections(newOrder);
                   setValue("sectionOrder", newOrder);
@@ -695,14 +715,14 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
                 className="space-y-2"
               >
                 {orderedSections.map((section) => (
-                  <Reorder.Item 
-                    key={section} 
+                  <Reorder.Item
+                    key={section}
                     value={section}
                     className="bg-secondary/40 p-3 rounded-xl flex items-center justify-between cursor-grab active:cursor-grabbing hover:bg-secondary/60 transition-colors border border-white/5 group"
                   >
                     <div className="flex items-center gap-3">
                       <GripVertical className="w-4 h-4 opacity-30 group-hover:opacity-100 transition-opacity" />
-                      <span className="text-sm font-bold capitalize">{section}</span>
+                      <span className="text-sm font-medium capitalize">{section}</span>
                     </div>
                   </Reorder.Item>
                 ))}
@@ -757,62 +777,62 @@ export default function ResumeForm({ initialData, onChange, isOrderOpen = false 
                 }
               }}
             />
-            <p className="text-[8px] font-bold uppercase opacity-30 tracking-widest text-center">Profile Photo<br/>(Optional)</p>
+            <p className="text-sm font-medium opacity-70 mb-4">Profile Photo<br />(Optional)</p>
           </div>
 
           <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
             <div>
-            <label className="block text-sm font-medium opacity-70">Full Name</label>
-            <input
-              {...register("personalInfo.fullName")}
-              className="w-full bg-secondary rounded-xl p-2 mt-1 focus:ring-2 focus:ring-accent outline-none transition-all"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium opacity-70">Email</label>
-            <input
-              {...register("personalInfo.email")}
-              className="w-full bg-secondary rounded-xl p-2 mt-1 focus:ring-2 focus:ring-accent outline-none transition-all"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium opacity-70">Phone</label>
-            <input
-              {...register("personalInfo.phone")}
-              className="w-full bg-secondary rounded-xl p-2 mt-1 focus:ring-2 focus:ring-accent outline-none transition-all"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium opacity-70">Location</label>
-            <input
-              {...register("personalInfo.location")}
-              className="w-full bg-secondary rounded-xl p-2 mt-1 focus:ring-2 focus:ring-accent outline-none transition-all"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium opacity-70">Website</label>
-            <input
-              {...register("personalInfo.website")}
-              placeholder="https://example.com"
-              className="w-full bg-secondary rounded-xl p-2 mt-1 focus:ring-2 focus:ring-accent outline-none transition-all"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium opacity-70">GitHub</label>
-            <input
-              {...register("personalInfo.github")}
-              placeholder="github.com/username"
-              className="w-full bg-secondary rounded-xl p-2 mt-1 focus:ring-2 focus:ring-accent outline-none transition-all"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium opacity-70">LinkedIn</label>
-            <input
-              {...register("personalInfo.linkedin")}
-              placeholder="linkedin.com/in/username"
-              className="w-full bg-secondary rounded-xl p-2 mt-1 focus:ring-2 focus:ring-accent outline-none transition-all"
-            />
-          </div>
+              <label className="block text-sm font-medium opacity-70">Full Name</label>
+              <input
+                {...register("personalInfo.fullName")}
+                className="w-full bg-secondary rounded-xl p-2 mt-1 focus:ring-2 focus:ring-accent outline-none transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium opacity-70">Email</label>
+              <input
+                {...register("personalInfo.email")}
+                className="w-full bg-secondary rounded-xl p-2 mt-1 focus:ring-2 focus:ring-accent outline-none transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium opacity-70">Phone</label>
+              <input
+                {...register("personalInfo.phone")}
+                className="w-full bg-secondary rounded-xl p-2 mt-1 focus:ring-2 focus:ring-accent outline-none transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium opacity-70">Location</label>
+              <input
+                {...register("personalInfo.location")}
+                className="w-full bg-secondary rounded-xl p-2 mt-1 focus:ring-2 focus:ring-accent outline-none transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium opacity-70">Website</label>
+              <input
+                {...register("personalInfo.website")}
+                placeholder="https://example.com"
+                className="w-full bg-secondary rounded-xl p-2 mt-1 focus:ring-2 focus:ring-accent outline-none transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium opacity-70">GitHub</label>
+              <input
+                {...register("personalInfo.github")}
+                placeholder="github.com/username"
+                className="w-full bg-secondary rounded-xl p-2 mt-1 focus:ring-2 focus:ring-accent outline-none transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium opacity-70">LinkedIn</label>
+              <input
+                {...register("personalInfo.linkedin")}
+                placeholder="linkedin.com/in/username"
+                className="w-full bg-secondary rounded-xl p-2 mt-1 focus:ring-2 focus:ring-accent outline-none transition-all"
+              />
+            </div>
           </div>
         </div>
       </FormSection>
