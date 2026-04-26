@@ -6,6 +6,7 @@ export interface PersonalInfo {
   website: string;
   github: string;
   linkedin: string;
+  profilePic?: string;
 }
 
 export interface Experience {
@@ -30,17 +31,37 @@ export interface Education {
 export interface Project {
   id: string;
   name: string;
-  description: string;
+  description: string[];
   technologies: string[];
   link: string;
 }
 
+export interface Certification {
+  id: string;
+  name: string;
+  issuer: string;
+  date: string;
+  link: string;
+}
+
+export interface SkillGroup {
+  id: string;
+  category: string;
+  skills: string[];
+}
+
+export type SectionType = "summary" | "experience" | "education" | "skills" | "projects" | "certifications";
+
 export interface ResumeData {
   personalInfo: PersonalInfo;
+  sectionOrder: SectionType[];
+  summary: string;
   experience: Experience[];
   education: Education[];
-  skills: string[];
+  skillGroups: SkillGroup[];
   projects: Project[];
+  certifications: Certification[];
+  font: "sans" | "serif" | "mono";
 }
 
 export const initialData: ResumeData = {
@@ -52,7 +73,11 @@ export const initialData: ResumeData = {
     website: "https://johndoe.com",
     github: "github.com/johndoe",
     linkedin: "linkedin.com/in/johndoe",
+    profilePic: "",
   },
+  font: "sans",
+  sectionOrder: ["summary", "experience", "education", "skills", "projects", "certifications"],
+  summary: "Results-driven Senior Developer with 5+ years of experience in building scalable web applications. Expert in React, Node.js, and cloud architecture.",
   experience: [
     {
       id: "1",
@@ -73,18 +98,41 @@ export const initialData: ResumeData = {
       school: "State University",
       degree: "B.S. in Computer Science",
       location: "New York, NY",
-      startDate: "2016",
-      endDate: "2020",
+      startDate: "Jan 2016",
+      endDate: "Jan 2020",
     },
   ],
-  skills: ["React", "Next.js", "TypeScript", "Node.js", "PostgreSQL", "AWS"],
+  skillGroups: [
+    {
+      id: "1",
+      category: "Languages",
+      skills: ["TypeScript", "JavaScript", "Python", "Go", "SQL"],
+    },
+    {
+      id: "2",
+      category: "Technologies",
+      skills: ["React", "Next.js", "Node.js", "PostgreSQL", "AWS", "Docker"],
+    },
+  ],
   projects: [
     {
       id: "1",
       name: "Resume Builder",
-      description: "A premium, ATS-friendly resume builder with real-time preview.",
+      description: [
+        "A premium, ATS-friendly resume builder with real-time preview.",
+        "Integrated Framer Motion for smooth animations and micro-interactions.",
+      ],
       technologies: ["Next.js", "Tailwind CSS", "Framer Motion"],
       link: "https://github.com/johndoe/resume-builder",
+    },
+  ],
+  certifications: [
+    {
+      id: "1",
+      name: "AWS Certified Solutions Architect",
+      issuer: "Amazon Web Services",
+      date: "Mar 2023",
+      link: "https://aws.amazon.com/certification/",
     },
   ],
 };

@@ -7,11 +7,12 @@ import ResumeForm from "@/components/resume-form";
 import { ResumePreview } from "@/components/resume-preview";
 import { initialData, ResumeData } from "@/lib/types";
 import { motion } from "framer-motion";
-import { Download, Edit3, Eye } from "lucide-react";
+import { Download, Edit3, Eye, Layers } from "lucide-react";
 
 export default function Home() {
   const [data, setData] = useState<ResumeData>(initialData);
   const [activeTab, setActiveTab] = useState<"edit" | "preview">("edit");
+  const [isOrderOpen, setIsOrderOpen] = useState(false);
   const componentRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
@@ -20,7 +21,7 @@ export default function Home() {
   });
 
   return (
-    <div className="min-h-screen pt-24 px-4 pb-12">
+    <div className="min-h-screen pt-32 px-4 pb-12">
       <Navbar />
       
       <main className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
@@ -46,31 +47,46 @@ export default function Home() {
 
         {/* Editor Side */}
         <div className={`flex-1 ${activeTab === "preview" ? "hidden lg:block" : "block"} no-print`}>
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-3xl font-extrabold tracking-tight">Design your resume</h2>
+          <div className="flex items-center justify-between mb-10">
+            <div className="flex items-center gap-6">
+              <h2 className="text-3xl font-extrabold tracking-tight">Design your resume</h2>
+              <button
+                onClick={() => setIsOrderOpen(!isOrderOpen)}
+                className={`p-2 px-4 rounded-xl flex items-center gap-2 transition-all border ${
+                  isOrderOpen 
+                    ? "bg-accent text-background border-accent shadow-lg shadow-accent/20" 
+                    : "bg-secondary border-white/10 hover:bg-secondary/80 text-sm font-bold uppercase tracking-widest"
+                }`}
+              >
+                <Layers className="w-4 h-4" />
+                <span className="hidden sm:inline">Sections</span>
+              </button>
+            </div>
             <button
               onClick={() => handlePrint()}
-              className="lg:hidden p-3 rounded-2xl glass-card bg-accent text-background flex items-center gap-2"
+              className="lg:hidden p-3 px-6 rounded-2xl bg-accent text-background flex items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-accent/20 border border-accent/10"
             >
-              <Download className="w-4 h-4" /> Export
+              <Download className="w-4 h-4" /> 
+              <span className="font-bold uppercase tracking-widest text-[10px]">Print / Download PDF</span>
             </button>
           </div>
-          <ResumeForm initialData={data} onChange={setData} />
+          <ResumeForm initialData={data} onChange={setData} isOrderOpen={isOrderOpen} />
         </div>
 
         {/* Preview Side */}
         <div className={`flex-1 ${activeTab === "edit" ? "hidden lg:block" : "block"}`}>
-          <div className="flex items-center justify-between mb-6 no-print">
+          <div className="flex items-center justify-between mb-10 no-print">
             <h2 className="text-3xl font-extrabold tracking-tight">Live Preview</h2>
             <button
               onClick={() => handlePrint()}
-              className="hidden lg:flex p-3 px-6 rounded-2xl glass-card bg-accent text-background items-center gap-2 hover:scale-105 transition-transform"
+              className="flex p-3 px-6 rounded-2xl bg-accent text-background items-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-accent/20 border border-accent/10"
             >
-              <Download className="w-4 h-4" /> Download PDF
+              <Download className="w-4 h-4" />
+              <span className="font-bold uppercase tracking-widest text-[10px]">Print / Download PDF</span>
             </button>
           </div>
           
-          <div className="lg:sticky lg:top-28 overflow-y-auto max-h-[calc(100vh-140px)] rounded-3xl shadow-2xl lg:shadow-none">
+          <div className="lg:sticky lg:top-32 overflow-y-auto max-h-[calc(100vh-140px)] rounded-r-3xl shadow-2xl lg:shadow-none">
             <ResumePreview ref={componentRef} data={data} />
           </div>
         </div>
