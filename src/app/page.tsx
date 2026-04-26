@@ -92,6 +92,20 @@ export default function Home() {
         </div>
       </main>
 
+      <footer className="max-w-7xl mx-auto mt-20 pb-12 border-t border-white/10 no-print">
+        <div className="flex flex-col items-center justify-center gap-3 pt-10 opacity-70 hover:opacity-100 transition-opacity">
+          <p className="text-sm font-bold uppercase tracking-[0.2em]">
+            Made by <span className="text-accent underline decoration-accent/30 underline-offset-4">Leumar Binas</span>
+          </p>
+          <p className="text-xs font-medium uppercase tracking-widest text-center opacity-80">
+            Built with Next.js • Tailwind CSS • Framer Motion • Lucide
+          </p>
+          <p className="text-xs opacity-50 mt-2">
+            © {new Date().getFullYear()} All Rights Reserved
+          </p>
+        </div>
+      </footer>
+
       {/* Decorative background elements */}
       <div className="fixed top-0 left-0 -z-10 w-full h-full overflow-hidden pointer-events-none no-print">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-accent/5 rounded-full blur-[120px]" />
